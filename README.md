@@ -6,7 +6,7 @@
 
 <h2>🚀 Demo</h2>
 
-[https://quoteverse-surendar.netlify.app/](https://quoteverse-surendar.netlify.app/)
+[https://quote-verse.vercel.app](https://quote-verse.vercel.app)
 
   
   
