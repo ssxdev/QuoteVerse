@@ -6,13 +6,11 @@ const User = require("./models/user.js");
 const jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
 const verifyToken = require("./middleware/verifyToken.js");
-const cookieParser = require("cookie-parser");
 
 const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cookieParser());
 app.use(cors());
 
 // Connect to MongoDB
@@ -45,13 +43,7 @@ app.post("/api/login", async (req, res) => {
         .json({ status: "fail", message: "Invalid Password" });
 
     const token = jwt.sign({ _id: userExist._id }, process.env.TOKEN_SECRET);
-    res
-      .cookie("auth-token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
-      .json({ status: "success", data: userExist, token: token });
+    res.status(200).json({ status: "success", data: userExist, token: token });
   } catch (err) {
     res.status(400).json({ status: "fail", message: err.message });
   }
@@ -75,25 +67,51 @@ app.post("/api/register", async (req, res) => {
     });
 
     const token = jwt.sign({ _id: newUser._id }, process.env.TOKEN_SECRET);
-    res
-      .cookie("auth-token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
-      .json({ status: "success", data: newUser, token: token });
+    res.status(200).json({ status: "success", data: newUser, token: token });
   } catch (err) {
     res.status(400).json({ status: "fail", message: err.message });
   }
 });
 
-app.get("/api/logout", verifyToken, async (req, res) => {
+app.get("/api/quote", async (req, res) => {
   try {
-    res
-      .clearCookie("auth-token")
-      .send({ status: "success", data: "Logged Out" });
+    const token = req.header("x-access-token");
+    if (!token)
+      return res
+        .status(401)
+        .json({ status: "fail", message: "Access Denied!" });
+    const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userData = await User.findOne({ _id: verified._id });
+    res.json({ status: "success", user: userData });
   } catch (err) {
-    res.status(400).json({ status: "fail", message: err.message });
+    res.json({ status: "fail", message: err.message });
+  }
+});
+
+app.post("/api/quote", async (req, res) => {
+  try {
+    const token = req.header("x-access-token");
+    if (!token)
+      return res
+        .status(401)
+        .json({ status: "fail", message: "Access Denied!" });
+    const verified = jwt.verify(token, process.env.TOKEN_SECRET);
+    const userData = await User.updateOne(
+      { _id: verified._id },
+      { $set: { quote: req.body.quote } }
+    );
+    res.json({ status: "success", user: userData });
+  } catch (err) {
+    res.json({ status: "fail", message: err.message });
+  }
+});
+
+app.get("/api/allquote", async (req, res) => {
+  try {
+    const allUsers = await User.find({ quote: { $exists: true } });
+    res.json({ status: "success", data: allUsers });
+  } catch (err) {
+    res.json({ status: "fail", message: err.message });
   }
 });
 

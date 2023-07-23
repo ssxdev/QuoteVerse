@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Form from "./pages/Form";
 import Home from "./pages/Home";
-import Contact from "./pages/Contact";
+import Quote from "./pages/Quote";
 import NoPage from "./pages/NoPage";
 import Navbar from "./components/Navbar";
 
@@ -12,7 +12,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navbar />}>
           <Route index element={<Home />} />
-          <Route path="contact" element={<Contact />} />
+          <Route path="quote" element={<Quote />} />
           <Route path="*" element={<NoPage />} />
         </Route>
         <Route path="login" element={<Form isLogin={true} />} />

@@ -1,6 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Form(props) {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -25,6 +31,12 @@ export default function Form(props) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    if (form.email === "" || form.password === "") {
+      notifyError("Email or Password cannot be empty");
+      return;
+    }
+
     const url = isLogin
       ? "http://localhost:1337/api/login"
       : "http://localhost:1337/api/register";
@@ -34,7 +46,39 @@ export default function Form(props) {
       body: JSON.stringify(form),
     });
     const data = await res.json();
-    console.log(data);
+    if (data.status === "success") {
+      Cookies.set("auth-token", data.token);
+      notifySuccess("Login Sucessfull!");
+      navigate("/quote");
+    } else {
+      notifyError(data.message);
+    }
+  }
+
+  function notifyError(message) {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+  }
+
+  function notifySuccess(message) {
+    toast.success(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
   }
 
   return (
@@ -147,6 +191,7 @@ export default function Form(props) {
               >
                 {isLogin ? "Log in" : "Sign Up"}
               </button>
+
               <p className="text-sm font-light text-gray-500 dark:text-gray-400 text-center">
                 {isLogin
                   ? "Don't have an account yet? "
@@ -162,6 +207,7 @@ export default function Form(props) {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </section>
   );
 }
